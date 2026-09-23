@@ -1,0 +1,384 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>ExoArXiv Pipeline</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --surface: #ffffff;
+    --ink: #1f2226;
+    --ink-dim: #5c6472;
+    --border: #dcdfe5;
+    --data-fill: #eef1f5;
+    --data-border: #c9cfd9;
+    --agent-fill: #fbe4d1;
+    --agent-border: #c1531f;
+    --agent-text: #7a3512;
+    --good: #2f7a4f;
+    --good-fill: #e4f2e9;
+    --bad: #b23b3b;
+    --bad-fill: #fbe6e6;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171c;
+      --surface: #1c1f26;
+      --ink: #e8e9ec;
+      --ink-dim: #9aa1ad;
+      --border: #33383f;
+      --data-fill: #23262d;
+      --data-border: #3a3f47;
+      --agent-fill: #3a2416;
+      --agent-border: #e08a4f;
+      --agent-text: #f3c8a2;
+      --good: #6cc794;
+      --good-fill: #1c2b21;
+      --bad: #e0847c;
+      --bad-fill: #2e1c1c;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171c;
+    --surface: #1c1f26;
+    --ink: #e8e9ec;
+    --ink-dim: #9aa1ad;
+    --border: #33383f;
+    --data-fill: #23262d;
+    --data-border: #3a3f47;
+    --agent-fill: #3a2416;
+    --agent-border: #e08a4f;
+    --agent-text: #f3c8a2;
+    --good: #6cc794;
+    --good-fill: #1c2b21;
+    --bad: #e0847c;
+    --bad-fill: #2e1c1c;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    padding-inline: 20px;
+    padding-block: 40px;
+  }
+  main {
+    max-width: 880px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+  header .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  header h1 {
+    font-size: clamp(1.6rem, 4vw, 2.1rem);
+    line-height: 1.15;
+    margin: 6px 0 10px;
+    text-wrap: balance;
+    font-weight: 700;
+  }
+  header p {
+    color: var(--ink-dim);
+    max-width: 60ch;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .config {
+    margin-top: 18px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.78rem;
+    color: var(--ink-dim);
+  }
+  .config span b { color: var(--ink); font-weight: 500; }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    font-size: 0.85rem;
+    color: var(--ink-dim);
+    align-items: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .swatch { width: 18px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+  .swatch.agent { background: var(--agent-fill); border: 1.5px solid var(--agent-border); }
+  .swatch.data { background: var(--data-fill); border: 1.5px solid var(--data-border); }
+
+  section.stage {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .stage-head .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--agent-border);
+    font-weight: 600;
+  }
+  .stage-head h2 {
+    font-size: 1.3rem;
+    margin: 4px 0 6px;
+    font-weight: 700;
+  }
+  .stage-head p {
+    color: var(--ink-dim);
+    line-height: 1.6;
+    margin: 0;
+    max-width: 66ch;
+  }
+
+  figure {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    overflow-x: auto;
+  }
+  figure svg { display: block; max-width: 100%; height: auto; }
+  figcaption {
+    margin-top: 10px;
+    font-size: 0.82rem;
+    color: var(--ink-dim);
+    line-height: 1.5;
+  }
+
+  svg text { font-family: "IBM Plex Mono", monospace; fill: var(--ink); }
+  svg text.label-sub { fill: var(--ink-dim); font-size: 10px; }
+  .node-agent rect { fill: var(--agent-fill); stroke: var(--agent-border); stroke-width: 1.6; }
+  .node-agent text { fill: var(--agent-text); font-weight: 600; }
+  .node-data rect { fill: var(--data-fill); stroke: var(--data-border); stroke-width: 1.4; }
+  .edge { stroke: var(--ink-dim); stroke-width: 1.6; fill: none; }
+  .edge-good { stroke: var(--good); stroke-width: 1.8; fill: none; }
+  .edge-bad { stroke: var(--bad); stroke-width: 1.8; fill: none; }
+  .edge-label { font-size: 11px; fill: var(--ink-dim); }
+  .edge-label.good { fill: var(--good); font-weight: 600; }
+  .edge-label.bad { fill: var(--bad); font-weight: 600; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+    font-size: 0.8rem;
+    color: var(--ink-dim);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 460px) {
+    body { padding-inline: 14px; }
+    .legend { gap: 14px; }
+  }
+</style>
+
+<main>
+  <header>
+    <div class="eyebrow">exo-arxiv-watcher — agent architecture</div>
+    <h1>3段階のエージェントパイプライン</h1>
+    <p>Anthropic「Building Effective Agents」の3パターン(prompt chaining / evaluator-optimizer / routing)を、同じ天文学論文タグ付けタスクの上で段階的に積み上げた構成。</p>
+    <div class="config">
+      <span>model: <b>Qwen2.5-7B-Instruct-Q8_0</b></span>
+      <span>backend: <b>llama-server (Vulkan, Arc 130V, ローカル)</b></span>
+      <span>framework: <b>any-agent (tinyagent)</b></span>
+    </div>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><span class="swatch agent"></span>LLMエージェント呼び出し</div>
+    <div class="legend-item"><span class="swatch data"></span>データ(中間生成物・入出力)</div>
+  </div>
+
+  <section class="stage">
+    <div class="stage-head">
+      <div class="eyebrow">Stage 1</div>
+      <h2>Prompt Chaining — stage1_chain.py</h2>
+      <p>1つのタスクを直列の2ステップに分解。前段の出力(日本語要約)が、そのまま後段(タグ付け)の入力になる。</p>
+    </div>
+    <figure>
+      <svg viewBox="0 0 900 160" role="img" aria-label="abstractがSummarizerエージェントで日本語要約になり、その要約がTaggerエージェントに渡ってタグになる直列の2段チェーン">
+        <defs>
+          <marker id="arrow1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-dim)"></path>
+          </marker>
+        </defs>
+
+        <g class="node-data">
+          <rect x="10" y="55" width="130" height="50" rx="6"></rect>
+          <text x="75" y="76" text-anchor="middle">abstract</text>
+          <text x="75" y="92" text-anchor="middle" class="label-sub">(英語)</text>
+        </g>
+        <line x1="140" y1="80" x2="176" y2="80" class="edge" marker-end="url(#arrow1)"></line>
+
+        <g class="node-agent">
+          <rect x="180" y="40" width="150" height="80" rx="8"></rect>
+          <text x="255" y="76" text-anchor="middle">Summarizer</text>
+          <text x="255" y="94" text-anchor="middle" class="label-sub" fill="var(--agent-text)">要約エージェント</text>
+        </g>
+        <line x1="330" y1="80" x2="366" y2="80" class="edge" marker-end="url(#arrow1)"></line>
+
+        <g class="node-data">
+          <rect x="370" y="55" width="140" height="50" rx="6"></rect>
+          <text x="440" y="76" text-anchor="middle">JP要約</text>
+          <text x="440" y="92" text-anchor="middle" class="label-sub">(3行以内)</text>
+        </g>
+        <line x1="510" y1="80" x2="546" y2="80" class="edge" marker-end="url(#arrow1)"></line>
+
+        <g class="node-agent">
+          <rect x="550" y="40" width="150" height="80" rx="8"></rect>
+          <text x="625" y="76" text-anchor="middle">Tagger</text>
+          <text x="625" y="94" text-anchor="middle" class="label-sub" fill="var(--agent-text)">タグ付けエージェント</text>
+        </g>
+        <line x1="700" y1="80" x2="736" y2="80" class="edge" marker-end="url(#arrow1)"></line>
+
+        <g class="node-data">
+          <rect x="740" y="55" width="140" height="50" rx="6"></rect>
+          <text x="810" y="76" text-anchor="middle">タグ</text>
+          <text x="810" y="92" text-anchor="middle" class="label-sub">(固定候補から1〜2個)</text>
+        </g>
+      </svg>
+      <figcaption>2回のLLM呼び出しが直列につながり、後段の入力は必ず前段の出力になる。</figcaption>
+    </figure>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head">
+      <div class="eyebrow">Stage 2</div>
+      <h2>Evaluator–Optimizer — stage2_evaluator_optimizer.py</h2>
+      <p>Taggerの出力をEvaluatorが元のabstractと照合。不一致ならNGの理由を添えてTaggerに戻し、最大2回まで再試行する。</p>
+    </div>
+    <figure>
+      <svg viewBox="0 0 820 260" role="img" aria-label="TaggerがタグをつけEvaluatorが元のabstractと照合し、不一致ならNGの理由付きでTaggerに差し戻す最大2回のフィードバックループ">
+        <defs>
+          <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-dim)"></path>
+          </marker>
+          <marker id="arrow2-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--bad)"></path>
+          </marker>
+          <marker id="arrow2-good" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--good)"></path>
+          </marker>
+        </defs>
+
+        <g class="node-data">
+          <rect x="10" y="95" width="130" height="50" rx="6"></rect>
+          <text x="75" y="116" text-anchor="middle">JP要約</text>
+          <text x="75" y="132" text-anchor="middle" class="label-sub">(Stage1の出力)</text>
+        </g>
+        <line x1="140" y1="120" x2="176" y2="120" class="edge" marker-end="url(#arrow2)"></line>
+
+        <g class="node-agent">
+          <rect x="180" y="80" width="150" height="80" rx="8"></rect>
+          <text x="255" y="116" text-anchor="middle">Tagger</text>
+          <text x="255" y="134" text-anchor="middle" class="label-sub" fill="var(--agent-text)">(generator)</text>
+        </g>
+        <line x1="330" y1="120" x2="366" y2="120" class="edge" marker-end="url(#arrow2)"></line>
+
+        <g class="node-data">
+          <rect x="370" y="95" width="140" height="50" rx="6"></rect>
+          <text x="440" y="121" text-anchor="middle">タグ(案)</text>
+        </g>
+        <line x1="510" y1="120" x2="546" y2="120" class="edge" marker-end="url(#arrow2)"></line>
+
+        <g class="node-agent">
+          <rect x="550" y="80" width="150" height="80" rx="8"></rect>
+          <text x="625" y="116" text-anchor="middle">Evaluator</text>
+          <text x="625" y="134" text-anchor="middle" class="label-sub" fill="var(--agent-text)">(候補を1つずつ査読)</text>
+        </g>
+
+        <line x1="700" y1="120" x2="736" y2="120" class="edge-good" marker-end="url(#arrow2-good)"></line>
+        <text x="718" y="108" text-anchor="middle" class="edge-label good">OK</text>
+        <g class="node-data">
+          <rect x="740" y="95" width="140" height="50" rx="6" style="stroke:var(--good)"></rect>
+          <text x="810" y="116" text-anchor="middle">最終タグ</text>
+        </g>
+
+        <path d="M 625,80 C 625,25 255,25 255,76" class="edge-bad" marker-end="url(#arrow2-bad)"></path>
+        <text x="440" y="20" text-anchor="middle" class="edge-label bad">NG: 理由 + 修正指示 (最大2回)</text>
+      </svg>
+      <figcaption>同じ7Bモデルに二値の「OK/NG」だけを問うと素通りしがちだったため、Evaluatorには候補タグを1件ずつ検討させてから結論を出させている。</figcaption>
+    </figure>
+  </section>
+
+  <section class="stage">
+    <div class="stage-head">
+      <div class="eyebrow">Stage 3</div>
+      <h2>Routing — stage3_routing.py</h2>
+      <p>本処理(Stage1+2)の前にRouterを置き、興味範囲外の論文はコストのかかるチェーンに進めずスキップする。</p>
+    </div>
+    <figure>
+      <svg viewBox="0 0 900 260" role="img" aria-label="RouterがRELEVANTかSKIPかを判定し、RELEVANTならStage1とStage2のパイプラインへ進み、SKIPなら理由をログしてそこで終わる分岐">
+        <defs>
+          <marker id="arrow3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-dim)"></path>
+          </marker>
+          <marker id="arrow3-good" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--good)"></path>
+          </marker>
+          <marker id="arrow3-bad" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--bad)"></path>
+          </marker>
+        </defs>
+
+        <g class="node-data">
+          <rect x="10" y="95" width="150" height="50" rx="6"></rect>
+          <text x="85" y="116" text-anchor="middle">title +</text>
+          <text x="85" y="132" text-anchor="middle">abstract</text>
+        </g>
+        <line x1="160" y1="120" x2="196" y2="120" class="edge" marker-end="url(#arrow3)"></line>
+
+        <g class="node-agent">
+          <rect x="200" y="80" width="150" height="80" rx="8"></rect>
+          <text x="275" y="116" text-anchor="middle">Router</text>
+          <text x="275" y="134" text-anchor="middle" class="label-sub" fill="var(--agent-text)">検出手法/バイオシグネチャ?</text>
+        </g>
+
+        <path d="M 350,105 L 440,45" class="edge-good" marker-end="url(#arrow3-good)"></path>
+        <text x="390" y="55" text-anchor="middle" class="edge-label good">RELEVANT</text>
+        <g class="node-agent">
+          <rect x="440" y="10" width="220" height="70" rx="8"></rect>
+          <text x="550" y="40" text-anchor="middle">Stage1 + Stage2</text>
+          <text x="550" y="58" text-anchor="middle" class="label-sub" fill="var(--agent-text)">要約 → タグ付け(査読ループ込み)</text>
+        </g>
+        <line x1="660" y1="45" x2="696" y2="45" class="edge" marker-end="url(#arrow3)"></line>
+        <g class="node-data">
+          <rect x="700" y="20" width="170" height="50" rx="6"></rect>
+          <text x="785" y="41" text-anchor="middle">要約 + 最終タグ</text>
+        </g>
+
+        <path d="M 350,135 L 440,195" class="edge-bad" marker-end="url(#arrow3-bad)"></path>
+        <text x="390" y="205" text-anchor="middle" class="edge-label bad">SKIP</text>
+        <g class="node-data">
+          <rect x="440" y="170" width="240" height="50" rx="6" style="stroke:var(--bad)"></rect>
+          <text x="560" y="191" text-anchor="middle">理由をログして終了</text>
+          <text x="560" y="207" text-anchor="middle" class="label-sub">(要約・タグ付けは実行しない)</text>
+        </g>
+      </svg>
+      <figcaption>Stage1・Stage2のチェーンは「本処理」としてそのまま再利用し、Routerがその手前で通す/通さないだけを判定する。</figcaption>
+    </figure>
+  </section>
+
+  <footer>
+    個人開発プロジェクト exo-arxiv-watcher の手習い記録。Anthropic「Building Effective Agents」記事のパターンを、Mozilla.ai any-agent + ローカルLLM(llama.cpp / Qwen2.5-7B)で実装しながら確認している。
+  </footer>
+</main>
+
+</body></html>

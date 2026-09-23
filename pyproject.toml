@@ -1,0 +1,20 @@
+[project]
+name = "exo-arxiv-watcher"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "any-agent[all]>=1.18.0",
+    "any-llm-sdk[all]>=1.28.0",
+    "markdownify>=1.2.3",
+    "scikit-learn>=1.9.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
