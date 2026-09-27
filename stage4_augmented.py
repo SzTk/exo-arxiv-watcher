@@ -1,15 +1,12 @@
-import os
-
 from any_agent import AgentCancel, AgentConfig, AnyAgent
 from any_agent.callbacks.base import Callback
 from any_agent.tracing.attributes import GenAI
 
 from tools.history_store import find_similar_cases, record_case
+from tools.llm_config import get_model_config
 from tools.web_fetch import visit_webpage
 
-MODEL_ID = os.environ.get("MODEL_ID", "openai:Qwen2.5-7B-Instruct-Q8_0")
-API_BASE = os.environ.get("API_BASE", "http://localhost:8080/v1")
-API_KEY = os.environ.get("API_KEY", "whatever")
+MODEL_ID, API_BASE, API_KEY = get_model_config()
 
 TAG_LIST = ["検出手法", "バイオシグネチャ", "大気科学", "軌道力学", "観測装置", "その他"]
 MAX_RETRIES = 2

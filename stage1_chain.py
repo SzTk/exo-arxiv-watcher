@@ -1,9 +1,8 @@
-import os
 from any_agent import AgentConfig, AnyAgent
 
-MODEL_ID = os.environ.get("MODEL_ID", "openai:Qwen2.5-7B-Instruct-Q8_0")
-API_BASE = os.environ.get("API_BASE", "http://localhost:8080/v1")
-API_KEY = os.environ.get("API_KEY", "whatever")
+from tools.llm_config import get_model_config
+
+MODEL_ID, API_BASE, API_KEY = get_model_config()
 
 SUMMARIZE_INSTRUCTIONS = (
     "あなたは天文学論文の要約者です。"

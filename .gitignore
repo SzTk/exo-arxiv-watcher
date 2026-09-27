@@ -14,3 +14,6 @@ data/
 
 # Windows/WSL download metadata
 *:Zone.Identifier
+
+# Local secrets / backend config (see .env.example)
+.env
